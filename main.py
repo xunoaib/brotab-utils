@@ -3,6 +3,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from itertools import groupby
 from subprocess import PIPE, Popen, run
+from typing import override
 from urllib.parse import urlparse
 
 
@@ -21,6 +22,22 @@ class Tab:
         assert m, f'Unknown format: {line!r}'
         prefix, window, _id, title, url = m.groups()
         return Tab(prefix, int(window), int(_id), title, url, line)
+
+    @staticmethod
+    def fromid(prefix_window_id: str):
+        m = re.match(r'^(\S+)\.(\d+)\.(\d+)$', prefix_window_id)
+        assert m, f'Unknown format: {prefix_window_id!r}'
+        prefix, window, _id, = m.groups()
+        return Tab(prefix, int(window), int(_id), '', '', '')
+
+    def identifier(self):
+        return f'{self.prefix}.{self.window}.{self.id}'
+
+    def activate(self):
+        run(['bt', 'activate', self.identifier()])
+
+    def open(self, url: str):
+        return open_tab(f'{self.prefix}.{self.window}', url)
 
 
 def tabs_by_window(tabs: list[Tab]):
@@ -70,10 +87,18 @@ def serialize_tabs(tabs: list[Tab]):
     return json.dumps(list(map(asdict, sorted(tabs))))
 
 
+def open_tab(prefix_window_id: str, url: str):
+    run(['bt', 'open', prefix_window_id], input=url + '\n', text=True)
+
+
 def main():
     tabs = bt_list()
 
-    print(serialize_tabs(tabs))
+    a = spawn_window()
+    # b = spawn_window()
+
+    a.open('http://duckduckgo.com')
+
     exit()
 
     groups = tabs_by_window(tabs)
