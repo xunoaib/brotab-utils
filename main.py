@@ -1,5 +1,6 @@
+import json
 import re
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from itertools import groupby
 from subprocess import PIPE, Popen, run
 from urllib.parse import urlparse
@@ -65,11 +66,14 @@ def spawn_window():
     return next(t for t in bt_list() if t.id not in ids)
 
 
+def serialize_tabs(tabs: list[Tab]):
+    return json.dumps(list(map(asdict, sorted(tabs))))
+
+
 def main():
     tabs = bt_list()
 
-    tab = spawn_window()
-    print(tab)
+    print(serialize_tabs(tabs))
     exit()
 
     groups = tabs_by_window(tabs)
