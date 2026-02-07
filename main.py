@@ -59,8 +59,18 @@ def bt_list(error_on_stderr=True):
     return list(map(Tab.fromstring, lines))
 
 
+def spawn_window():
+    ids = {t.id for t in bt_list()}
+    run(['firefox'])
+    return next(t for t in bt_list() if t.id not in ids)
+
+
 def main():
     tabs = bt_list()
+
+    tab = spawn_window()
+    print(tab)
+    exit()
 
     groups = tabs_by_window(tabs)
     groups = tabs_by_domain(tabs)
