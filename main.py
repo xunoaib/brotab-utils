@@ -1,10 +1,12 @@
 import json
+import os
 import re
 from dataclasses import asdict, dataclass, field
 from itertools import groupby
 from subprocess import PIPE, Popen, run
-from typing import override
-from urllib.parse import urlparse
+from urllib.parse import quote_plus, urlparse
+
+BROWSER_COMMAND = 'firefox'
 
 
 @dataclass(order=True)
@@ -30,6 +32,9 @@ class Tab:
         prefix, window, _id, = m.groups()
         return Tab(prefix, int(window), int(_id), '', '', '')
 
+    def line(self):
+        return f'{self.prefix}.{self.window}.{self.id}\t{self.title}\t{self.url}'
+
     def identifier(self):
         return f'{self.prefix}.{self.window}.{self.id}'
 
@@ -38,6 +43,37 @@ class Tab:
 
     def open(self, url: str):
         return open_tab(f'{self.prefix}.{self.window}', url)
+
+    def close(self):
+        run(['bt', 'close', self.identifier()])
+
+    def move(self, window: int):
+        move_tabs_to_window([self], window)
+
+
+def get_tabs_by_ids(tab_ids: list[str]):
+    return [t for t in bt_list() if t.identifier() in tab_ids]
+
+
+def move_tabs_to_window(tabs: list[Tab], window: int):
+    tabs_before = bt_list()
+
+    for t in tabs_before:
+        if t in tabs:
+            t.window = window
+            print('Moving', t)
+
+    stdin = '\n'.join(t.line() for t in tabs_before)
+
+    run(
+        ['bt', 'move'],
+        env={
+            **os.environ, 'EDITOR': './bt_editor.py'
+        },
+        input=stdin,
+        text=True,
+        check=True
+    )
 
 
 def tabs_by_window(tabs: list[Tab]):
@@ -54,9 +90,7 @@ def url_domain(url: str):
     return urlparse(url).hostname
 
 
-def bt_list_strs(error_on_stderr=True):
-    '''Runs and returns standard output from "bt list"'''
-
+def bt_list_str(error_on_stderr=True):
     out, err = Popen(
         ['bt list'],
         shell=True,
@@ -69,7 +103,13 @@ def bt_list_strs(error_on_stderr=True):
         if error_on_stderr:
             raise ValueError(f'Error running "bt list": {err.decode()}')
 
-    return out.decode().splitlines()
+    return out.decode()
+
+
+def bt_list_strs(error_on_stderr=True):
+    '''Runs and returns standard output from "bt list"'''
+
+    return bt_list_str(error_on_stderr).splitlines()
 
 
 def bt_list(error_on_stderr=True):
@@ -79,7 +119,7 @@ def bt_list(error_on_stderr=True):
 
 def spawn_window():
     ids = {t.id for t in bt_list()}
-    run(['firefox'])
+    run([BROWSER_COMMAND])
     return next(t for t in bt_list() if t.id not in ids)
 
 
@@ -91,17 +131,26 @@ def open_tab(prefix_window_id: str, url: str):
     run(['bt', 'open', prefix_window_id], input=url + '\n', text=True)
 
 
-def main():
+def close_tabs(tabs: list[Tab]):
+    run(['bt', 'close'] + [t.identifier() for t in tabs])
+
+
+def move_domain_to_new_window(domain: str):
+    '''Creates a new window and moves all tabs from the given domain to it'''
+
+    tabs = bt_list()
+    groups = tabs_by_domain(tabs)
+
+    if ts := groups.get(domain, []):
+        newtab = spawn_window()
+        move_tabs_to_window(ts, newtab.window)
+        newtab.close()
+
+
+def print_tabs_by_group():
     tabs = bt_list()
 
-    a = spawn_window()
-    # b = spawn_window()
-
-    a.open('http://duckduckgo.com')
-
-    exit()
-
-    groups = tabs_by_window(tabs)
+    # groups = tabs_by_window(tabs)
     groups = tabs_by_domain(tabs)
 
     for key, group in groups.items():
@@ -109,6 +158,15 @@ def main():
         for t in group:
             print(t.url)
         print()
+
+
+def main():
+
+    # print_tabs_by_group()
+
+    move_domain_to_new_window('www.youtube.com')
+
+    # close_tabs([t for t in tabs if t.url == 'https://www.youtube.com/'])
 
 
 if __name__ == '__main__':
