@@ -4,9 +4,9 @@ import re
 from dataclasses import asdict, dataclass, field
 from itertools import groupby
 from subprocess import PIPE, Popen, run
-from urllib.parse import quote_plus, urlparse
+from urllib.parse import urlparse
 
-BROWSER_COMMAND = 'firefox'
+BROWSER_COMMAND = 'firefox-nightly'
 
 
 @dataclass(order=True)
