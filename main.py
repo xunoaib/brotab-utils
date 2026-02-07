@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass, field
+from itertools import groupby
 from subprocess import PIPE, Popen
 
 
@@ -18,6 +19,12 @@ class Tab:
         assert m, f'Unknown format: {line!r}'
         prefix, window, _id, title, url = m.groups()
         return Tab(prefix, int(window), int(_id), title, url, line)
+
+
+def tabs_by_window(tabs: list[Tab]):
+    func = lambda t: t.window
+    tabs = sorted(tabs, key=func)
+    return {k: list(g) for k, g in groupby(tabs, func)}
 
 
 def next_interval(now: float, interval: int):
@@ -50,8 +57,13 @@ def bt_list(error_on_stderr=True):
 def main():
     tabs = bt_list()
 
-    for t in tabs:
-        print(t)
+    # for t in tabs:
+    #     print(t)
+
+    windows = tabs_by_window(tabs)
+
+    for k, g in windows.items():
+        print(k, len(g))
 
 
 if __name__ == '__main__':
