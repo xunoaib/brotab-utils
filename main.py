@@ -1,10 +1,11 @@
 import re
 from dataclasses import dataclass, field
 from itertools import groupby
-from subprocess import PIPE, Popen
+from subprocess import PIPE, Popen, run
+from urllib.parse import urlparse
 
 
-@dataclass
+@dataclass(order=True)
 class Tab:
     prefix: str
     window: int
@@ -22,13 +23,17 @@ class Tab:
 
 
 def tabs_by_window(tabs: list[Tab]):
-    func = lambda t: t.window
-    tabs = sorted(tabs, key=func)
-    return {k: list(g) for k, g in groupby(tabs, func)}
+    tabs = sorted(tabs, key=lambda t: (t.window, t))
+    return {k: list(g) for k, g in groupby(tabs, lambda t: t.window)}
 
 
-def next_interval(now: float, interval: int):
-    return now - (now % interval) + interval
+def tabs_by_domain(tabs: list[Tab]):
+    tabs = sorted(tabs, key=lambda t: (t.url, t))
+    return {k: list(g) for k, g in groupby(tabs, lambda t: url_domain(t.url))}
+
+
+def url_domain(url: str):
+    return urlparse(url).hostname
 
 
 def bt_list_strs(error_on_stderr=True):
@@ -57,13 +62,14 @@ def bt_list(error_on_stderr=True):
 def main():
     tabs = bt_list()
 
-    # for t in tabs:
-    #     print(t)
+    groups = tabs_by_window(tabs)
+    groups = tabs_by_domain(tabs)
 
-    windows = tabs_by_window(tabs)
-
-    for k, g in windows.items():
-        print(k, len(g))
+    for key, group in groups.items():
+        print('>>>', key)
+        for t in group:
+            print(t.url)
+        print()
 
 
 if __name__ == '__main__':
