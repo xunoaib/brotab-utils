@@ -35,24 +35,24 @@ class Tab:
     def line(self):
         return f'{self.prefix}.{self.window}.{self.id}\t{self.title}\t{self.url}'
 
-    def identifier(self):
+    def full_id(self):
         return f'{self.prefix}.{self.window}.{self.id}'
 
     def activate(self):
-        run(['bt', 'activate', self.identifier()])
+        run(['bt', 'activate', self.full_id()])
 
     def open(self, url: str):
         return open_tab(f'{self.prefix}.{self.window}', url)
 
     def close(self):
-        run(['bt', 'close', self.identifier()])
+        run(['bt', 'close', self.full_id()])
 
     def move(self, window: int):
         move_tabs_to_window([self], window)
 
 
 def get_tabs_by_ids(tab_ids: list[str]):
-    return [t for t in bt_list() if t.identifier() in tab_ids]
+    return [t for t in bt_list() if t.full_id() in tab_ids]
 
 
 def move_tabs_to_window(tabs: list[Tab], window: int):
@@ -132,7 +132,7 @@ def open_tab(prefix_window_id: str, url: str):
 
 
 def close_tabs(tabs: list[Tab]):
-    run(['bt', 'close'] + [t.identifier() for t in tabs])
+    run(['bt', 'close'] + [t.full_id() for t in tabs])
 
 
 def move_domain_to_new_window(domain: str):
