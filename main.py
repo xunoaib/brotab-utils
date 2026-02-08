@@ -32,7 +32,7 @@ class Tab:
         prefix, window, _id, = m.groups()
         return Tab(prefix, int(window), int(_id), '', '', '')
 
-    def line(self):
+    def to_string(self):
         return f'{self.prefix}.{self.window}.{self.id}\t{self.title}\t{self.url}'
 
     def full_id(self):
@@ -63,7 +63,7 @@ def move_tabs_to_window(tabs: list[Tab], window: int):
             t.window = window
             print('Moving', t)
 
-    stdin = '\n'.join(t.line() for t in tabs_before)
+    stdin = '\n'.join(t.to_string() for t in tabs_before)
 
     run(
         ['bt', 'move'],
