@@ -90,9 +90,9 @@ def url_domain(url: str):
     return urlparse(url).hostname
 
 
-def bt_list_str(error_on_stderr=True):
+def run_command(command: str, error_on_stderr=True):
     out, err = Popen(
-        ['bt list'],
+        [command],
         shell=True,
         stdout=PIPE,
         stderr=PIPE,
@@ -106,14 +106,18 @@ def bt_list_str(error_on_stderr=True):
     return out.decode()
 
 
-def bt_list_strs(error_on_stderr=True):
+def bt_list_str():
+    return run_command('bt list')
+
+
+def bt_list_strs():
     '''Runs and returns standard output from "bt list"'''
 
-    return bt_list_str(error_on_stderr).splitlines()
+    return bt_list_str().splitlines()
 
 
-def bt_list(error_on_stderr=True):
-    lines = bt_list_strs(error_on_stderr)
+def bt_list():
+    lines = bt_list_strs()
     return list(map(Tab.fromstring, lines))
 
 
