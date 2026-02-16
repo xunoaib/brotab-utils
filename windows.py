@@ -18,6 +18,17 @@ class Window:
     height: int
 
 
+@dataclass
+class Desktop:
+    index: int
+    active: bool
+    dg: str
+    vp_x: int
+    vp_y: int
+    wa: str
+    desktop_id: int
+
+
 def wmctrl_list():
     out = run_command('wmctrl -lpGx')
     lines = out.strip().split('\n')
@@ -38,5 +49,34 @@ def wmctrl_list():
         print(window)
 
 
+def wmctrl_desktops():
+    out = run_command('wmctrl -d')
+    lines = out.strip().split('\n')
+    pattern = r'^(\d+)\s+([-*])\s+DG:\s+(\S+)\s+VP:\s+(\d+),(\d+)\s+WA:\s+(\S+)\s+(\d+)$'
+
+    desktops = []
+
+    for line in lines:
+        m = re.match(pattern, line)
+        assert m, 'Regex failed'
+        index, active, dg, vp_x, vp_y, wa, desktop_id = m.groups()
+
+        desktop = Desktop(
+            int(index),
+            active == '*',
+            dg,
+            int(vp_x),
+            int(vp_y),
+            wa,
+            int(desktop_id),
+        )
+        desktops.append(desktop)
+
+    return desktops
+
+
 if __name__ == '__main__':
-    wmctrl_list()
+    # wmctrl_list()
+
+    for desktop in wmctrl_desktops():
+        print(desktop)
