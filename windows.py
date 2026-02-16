@@ -34,6 +34,7 @@ def wmctrl_list():
     lines = out.strip().split('\n')
     pattern = r'^(\S+)\s+(-?\d+)\s+(\d+)\s+(-?\d+)\s+(-?\d+)\s+(\d+)\s+(\d+)\s+([^\s]+)\s+([^\s]+)\s+(.+)$'
 
+    windows = []
     for line in lines:
         m = re.match(pattern, line)
         assert m, 'Regex failed'
@@ -45,8 +46,9 @@ def wmctrl_list():
             window_id, wm_class, host, title, desktop_id, pid, x, y, width,
             height
         )
+        windows.append(window)
 
-        print(window)
+    return windows
 
 
 def wmctrl_desktops():
@@ -76,7 +78,9 @@ def wmctrl_desktops():
 
 
 if __name__ == '__main__':
-    # wmctrl_list()
 
-    for desktop in wmctrl_desktops():
-        print(desktop)
+    for window in wmctrl_list():
+        print(window)
+
+    # for desktop in wmctrl_desktops():
+    #     print(desktop)
