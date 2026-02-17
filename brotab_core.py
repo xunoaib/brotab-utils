@@ -62,7 +62,7 @@ class ActiveTab:
     tab_id: str
     client: str
     hostport: str
-    pid: int
+    unknown_id: int
     browser: str
 
 
@@ -113,7 +113,7 @@ def bt_list():
 def bt_active():
     lines = run_command('bt active').splitlines()
 
-    active = []
+    active: list[ActiveTab] = []
     for line in lines:
         tab_id, client, hostport, pid, browser = line.split('\t')
         active.append(ActiveTab(tab_id, client, hostport, int(pid), browser))
