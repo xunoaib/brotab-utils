@@ -92,18 +92,13 @@ def url_domain(url: str):
     return urlparse(url).hostname
 
 
-def bt_list_str():
-    return run_command('bt list')
-
-
-def bt_list_strs():
-    '''Runs and returns standard output from "bt list"'''
-
-    return bt_list_str().splitlines()
-
-
 def bt_list():
-    lines = bt_list_strs()
+    lines = run_command('bt list').splitlines()
+    return list(map(Tab.fromstring, lines))
+
+
+def bt_active():
+    lines = run_command('bt active').splitlines()
     return list(map(Tab.fromstring, lines))
 
 
