@@ -1,4 +1,4 @@
-from brotab_core import (bt_list, move_tabs_to_window, spawn_window,
+from brotab_core import (bt_active, bt_list, move_tabs_to_window, spawn_window,
                          tabs_by_domain)
 
 

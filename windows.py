@@ -2,10 +2,11 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 
+from brotab_core import bt_active
 from command import run_command
 
 
-@dataclass
+@dataclass(order=True, frozen=True)
 class Window:
     window_id: str
     wm_class: str
@@ -19,7 +20,7 @@ class Window:
     height: int
 
 
-@dataclass
+@dataclass(order=True, frozen=True)
 class Desktop:
     index: int
     active: bool
@@ -30,7 +31,7 @@ class Desktop:
     desktop_id: int
 
 
-def wmctrl_list():
+def wmctrl_list() -> list[Window]:
     out = run_command('wmctrl -lpGx')
     lines = out.strip().split('\n')
     pattern = r'^(\S+)\s+(-?\d+)\s+(\d+)\s+(-?\d+)\s+(-?\d+)\s+(\d+)\s+(\d+)\s+([^\s]+)\s+([^\s]+)\s+(.+)$'
@@ -52,7 +53,7 @@ def wmctrl_list():
     return windows
 
 
-def wmctrl_desktops():
+def wmctrl_desktops() -> list[Desktop]:
     out = run_command('wmctrl -d')
     lines = out.strip().split('\n')
     pattern = r'^(\d+)\s+([-*])\s+DG:\s+(\S+)\s+VP:\s+(\d+),(\d+)\s+WA:\s+(\S+)\s+(\d+)$'
@@ -78,19 +79,36 @@ def wmctrl_desktops():
     return desktops
 
 
+def find_window_tabs(
+    windows: list[Window] | None = None,
+    WIN_TITLE_REPLACE=' — Firefox Nightly'
+):
+    '''Find brotab tab associated with each active browser window'''
+
+    if windows is None:
+        windows = wmctrl_list()
+
+    window_titles = defaultdict(list)
+    for window in windows:
+        title = window.title.replace(WIN_TITLE_REPLACE, '')
+        window_titles[title].append(window)
+
+    window_tabs = {}
+    for tab in bt_active():
+        windows = window_titles[tab.title]
+        if len(windows) != 1:
+            raise ValueError(
+                f'ERROR: Expected one window, found {len(windows)} for {tab.title!r}'
+            )
+        window_tabs[windows[0]] = tab
+
+    return dict(sorted(list(window_tabs.items())))
+
+
 if __name__ == '__main__':
 
-    windows = wmctrl_list()
-    desktops = {d.desktop_id: d for d in wmctrl_desktops()}
-
-    windows_by_desktop = defaultdict(list)
-
-    for window in windows:
-        windows_by_desktop[window.desktop_id].append(window)
-
-    for did, windows in windows_by_desktop.items():
-        print(desktops[did])
-        print()
-        for w in windows:
-            print(f'   {w.title}')
+    window_tabs = find_window_tabs()
+    for w, t in window_tabs.items():
+        print(w.title)
+        print(t.title)
         print()
