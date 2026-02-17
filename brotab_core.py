@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
 from itertools import groupby
 from subprocess import run
@@ -30,6 +31,12 @@ class Tab:
     @staticmethod
     def fromid(prefix_window_id: str):
         return next(t for t in bt_list() if t.full_id() == prefix_window_id)
+
+    @staticmethod
+    def fromids(prefix_window_ids: Iterable[str]):
+        '''Faster bulk version of fromid'''
+        tabs = {t.full_id(): t for t in bt_list()}
+        return [tabs[id] for id in prefix_window_ids]
 
     def to_string(self):
         return f'{self.prefix}.{self.window}.{self.id}\t{self.title}\t{self.url}'
