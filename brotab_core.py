@@ -110,7 +110,7 @@ def bt_list():
     return list(map(Tab.fromstring, lines))
 
 
-def bt_active():
+def _bt_active():
     lines = run_command('bt active').splitlines()
 
     active: list[ActiveTab] = []
@@ -119,6 +119,10 @@ def bt_active():
         active.append(ActiveTab(tab_id, client, hostport, int(pid), browser))
 
     return active
+
+
+def bt_active():
+    return Tab.fromids({t.tab_id for t in _bt_active()})
 
 
 def spawn_window():
