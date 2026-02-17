@@ -29,10 +29,7 @@ class Tab:
 
     @staticmethod
     def fromid(prefix_window_id: str):
-        m = re.match(r'^(\S+)\.(\d+)\.(\d+)$', prefix_window_id)
-        assert m, f'Unknown format: {prefix_window_id!r}'
-        prefix, window, _id, = m.groups()
-        return Tab(prefix, int(window), int(_id), '', '', '')
+        return next(t for t in bt_list() if t.full_id() == prefix_window_id)
 
     def to_string(self):
         return f'{self.prefix}.{self.window}.{self.id}\t{self.title}\t{self.url}'
