@@ -85,7 +85,7 @@ def find_window_tabs(
 ):
     '''Find brotab tab associated with each active browser window'''
 
-    if windows is None:
+    if match_all := windows is None:
         windows = wmctrl_list()
 
     window_titles = defaultdict(list)
@@ -96,19 +96,35 @@ def find_window_tabs(
     window_tabs = {}
     for tab in bt_active():
         windows = window_titles[tab.title]
-        if len(windows) != 1:
+
+        if len(windows) == 1:
+            window_tabs[windows[0]] = tab
+        elif len(windows) == 0 and not match_all:
+            pass
+        else:
             raise ValueError(
                 f'ERROR: Expected one window, found {len(windows)} for {tab.title!r}'
             )
-        window_tabs[windows[0]] = tab
 
     return dict(sorted(list(window_tabs.items())))
 
 
 if __name__ == '__main__':
 
+    desktops = {d.desktop_id: d for d in wmctrl_desktops()}
+
+    desktop_windows = defaultdict(list)
+    for window in wmctrl_list():
+        desktop_windows[window.desktop_id].append(window)
+
     window_tabs = find_window_tabs()
-    for w, t in window_tabs.items():
-        print(w.title)
-        print(t.title)
+
+    for did, windows in desktop_windows.items():
+        print(desktops[did])
+        print()
+        for w in windows:
+            if tabs := window_tabs.get(w):
+                print(f'    {tabs}')
+            else:
+                print(f'   {w.title}')
         print()
