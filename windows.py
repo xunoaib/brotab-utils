@@ -1,4 +1,5 @@
 import re
+from collections import defaultdict
 from dataclasses import dataclass
 
 from command import run_command
@@ -79,8 +80,17 @@ def wmctrl_desktops():
 
 if __name__ == '__main__':
 
-    for window in wmctrl_list():
-        print(window)
+    windows = wmctrl_list()
+    desktops = {d.desktop_id: d for d in wmctrl_desktops()}
 
-    # for desktop in wmctrl_desktops():
-    #     print(desktop)
+    windows_by_desktop = defaultdict(list)
+
+    for window in windows:
+        windows_by_desktop[window.desktop_id].append(window)
+
+    for did, windows in windows_by_desktop.items():
+        print(desktops[did])
+        print()
+        for w in windows:
+            print(f'   {w.title}')
+        print()
