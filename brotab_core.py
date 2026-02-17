@@ -53,6 +53,15 @@ class Tab:
         move_tabs_to_window([self], window)
 
 
+@dataclass
+class ActiveTab:
+    tab_id: str
+    client: str
+    hostport: str
+    pid: int
+    browser: str
+
+
 def get_tabs_by_ids(tab_ids: list[str]):
     return [t for t in bt_list() if t.full_id() in tab_ids]
 
@@ -99,7 +108,13 @@ def bt_list():
 
 def bt_active():
     lines = run_command('bt active').splitlines()
-    return list(map(Tab.fromstring, lines))
+
+    active = []
+    for line in lines:
+        tab_id, client, hostport, pid, browser = line.split('\t')
+        active.append(ActiveTab(tab_id, client, hostport, int(pid), browser))
+
+    return active
 
 
 def spawn_window():
