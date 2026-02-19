@@ -56,6 +56,10 @@ class Tab:
     def move(self, window: int):
         move_tabs_to_window([self], window)
 
+    @property
+    def loaded(self):
+        return not self.title.startswith('💤 ')
+
 
 @dataclass
 class ActiveTab:
