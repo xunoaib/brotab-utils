@@ -136,7 +136,13 @@ def serialize_tabs(tabs: list[Tab]):
 
 
 def open_tab(prefix_window_id: str, url: str):
-    run(['bt', 'open', prefix_window_id], input=url + '\n', text=True)
+    result = run(
+        ['bt', 'open', prefix_window_id],
+        input=url + '\n',
+        text=True,
+        capture_output=True
+    )
+    return Tab.fromid(result.stdout.strip())
 
 
 def close_tabs(tabs: list[Tab]):
