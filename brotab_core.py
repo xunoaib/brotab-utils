@@ -70,10 +70,6 @@ class ActiveTab:
     browser: str
 
 
-def get_tabs_by_ids(tab_ids: list[str]):
-    return [t for t in bt_list() if t.full_id() in tab_ids]
-
-
 def move_tabs_to_window(tabs: list[Tab], window: int):
     tabs_before = bt_list()
 
