@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 
 from command import run_command
 
-BROWSER_COMMAND = 'firefox-nightly'
+BROWSER_COMMAND = os.getenv('BROWSER_COMMAND', 'firefox-nightly')
 
 
 @dataclass(order=True)
